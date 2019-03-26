@@ -44,7 +44,15 @@ const server = http.createServer(function(req, res) {
 
     // Construct the data object to send to the handler
 
-    const data {}
+    const data={
+        'trimmedPath': trimmedPath,
+        'queryStringObject': queryStringObject,
+        'method': method,
+        'headers': headers,
+        'payload': buffer
+    };
+
+    // Route the request to the hadler specifird in the router
 
     // Send the response
     res.end("Hello!\n");
