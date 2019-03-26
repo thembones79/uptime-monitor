@@ -36,15 +36,15 @@ const server = http.createServer(function(req, res) {
   req.on("data", function(data) {
     buffer += decoder.write(data);
   });
-  req.on('end', function(){
-      buffer += decoder.end();
+  req.on("end", function() {
+    buffer += decoder.end();
+
+    // Send the response
+    res.end("Hello!\n");
+
+    // Log request path
+    console.log("Request received with this payload: ", buffer);
   });
-
-  // Send the response
-  res.end("Hello!\n");
-
-  // Log request path
-  console.log("Request received with these headers: ", headers);
 });
 
 // Start the server, and have it listen on port 3000
