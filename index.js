@@ -9,11 +9,64 @@
 // Dependiences
 
 const http = require("http");
+const https = require("https");
 const url = require("url");
 const StringDecoder = require("string_decoder").StringDecoder;
+const config = require('./config');
+const fs = require('fs');
 
-// The server should respond to all request wuth a string
-const server = http.createServer(function(req, res) {
+
+// Instantiate the HTTP server
+const httpServer = http.createServer(function(req, res) {
+unifiedServer(req,res);
+});
+
+// Start the HTTP server
+httpServer.listen(config.httpPort, function() {
+  console.log("The server is listening on port "+config.httpPort);
+});
+
+
+// Instantiate the HTTPS server
+let httpsServerOptions = {
+'key': fs.readFileSync('./https/key.pem'),
+'cert': fs.readFileSync('./https/cert.pem')
+};
+
+
+const httpsServer = https.createServer(httpsServerOptions, function (req, res) {
+  unifiedServer(req, res);
+});
+
+// Start the HTTPS server
+httpsServer.listen(config.httpsPort, function () {
+  console.log("The server is listening on port " + config.httpsPort);
+});
+
+
+
+
+// Define handlers
+const handlers = {};
+
+// Ping handler
+handlers.ping = function(data, callback) {
+  callback(200);
+};
+
+// Not found handler
+handlers.notFound = function(data, callback) {
+  callback(404);
+};
+
+// Define a request router
+const router = {
+  'ping': handlers.ping
+};
+
+
+// All the server logic for both the http and https server
+let unifiedServer = function(req,res){
   // Get the URL and parse it
   const parsedUrl = url.parse(req.url, true);
 
@@ -33,10 +86,10 @@ const server = http.createServer(function(req, res) {
   // Get the payload, if any
   let decoder = new StringDecoder("utf-8");
   let buffer = "";
-  req.on("data", function(data) {
+  req.on("data", function (data) {
     buffer += decoder.write(data);
   });
-  req.on("end", function() {
+  req.on("end", function () {
     buffer += decoder.end();
 
     // Choose the handler this request should go to. If one is not found, use the notFound handler
@@ -56,7 +109,7 @@ const server = http.createServer(function(req, res) {
     };
 
     // Route the request to the hadler specifird in the router
-    chosenHandler(data, function(statusCode, payload) {
+    chosenHandler(data, function (statusCode, payload) {
       // Use the status code called by the handler, or default to 200.
       statusCode = typeof statusCode == "number" ? statusCode : 200;
 
@@ -75,29 +128,4 @@ const server = http.createServer(function(req, res) {
       console.log("Returning this response: ", statusCode, payloadString);
     });
   });
-});
-
-// Start the server, and have it listen on port 3000
-
-server.listen(3000, function() {
-  console.log("The server is listening on port 3000 now");
-});
-
-// Define handlers
-const handlers = {};
-
-// Sample handler
-handlers.sample = function(data, callback) {
-  // Callback a http status code, and a payload object
-  callback(406, { name: "sample handler" });
-};
-
-// Not found handler
-handlers.notFound = function(data, callback) {
-  callback(404);
-};
-
-// Define a request router
-const router = {
-  sample: handlers.sample
 };
