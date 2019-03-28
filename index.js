@@ -40,25 +40,40 @@ const server = http.createServer(function(req, res) {
     buffer += decoder.end();
 
     // Choose the handler this request should go to. If one is not found, use the notFound handler
-    const chosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
+    const chosenHandler =
+      typeof router[trimmedPath] !== "undefined"
+        ? router[trimmedPath]
+        : handlers.notFound;
 
     // Construct the data object to send to the handler
 
-    const data={
-        'trimmedPath': trimmedPath,
-        'queryStringObject': queryStringObject,
-        'method': method,
-        'headers': headers,
-        'payload': buffer
+    const data = {
+      trimmedPath: trimmedPath,
+      queryStringObject: queryStringObject,
+      method: method,
+      headers: headers,
+      payload: buffer
     };
 
     // Route the request to the hadler specifird in the router
+    chosenHandler(data, function(statusCode, payload) {
+      // Use the status code called by the handler, or default to 200.
+      statusCode = typeof statusCode == "number" ? statusCode : 200;
 
-    // Send the response
-    res.end("Hello!\n");
+      // Use the payload called back by the handler, or defaylt to an empty object.
+      payload = typeof payload == "object" ? payload : {};
 
-    // Log request path
-    console.log("Request received with this payload: ", buffer);
+      // Convert the payload to a string
+      payloadString = JSON.stringify(payload);
+
+      // Return the response
+      res.setHeader('Content-Type', 'application/json');
+      res.writeHead(statusCode);
+      res.end(payloadString);
+
+      // Log request path
+      console.log("Returning this response: ", statusCode, payloadString);
+    });
   });
 });
 
