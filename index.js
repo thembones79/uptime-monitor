@@ -14,6 +14,10 @@ const url = require("url");
 const StringDecoder = require("string_decoder").StringDecoder;
 const config = require('./config');
 const fs = require('fs');
+const handlers = require('./lib/handlers');
+
+
+
 
 
 // Instantiate the HTTP server
@@ -43,26 +47,12 @@ httpsServer.listen(config.httpsPort, function () {
   console.log("The server is listening on port " + config.httpsPort);
 });
 
-
-
-
-// Define handlers
-const handlers = {};
-
-// Ping handler
-handlers.ping = function(data, callback) {
-  callback(200);
-};
-
-// Not found handler
-handlers.notFound = function(data, callback) {
-  callback(404);
-};
-
 // Define a request router
 const router = {
-  'ping': handlers.ping
+  'ping': handlers.ping,
+  'users': handlers.users
 };
+
 
 
 // All the server logic for both the http and https server
